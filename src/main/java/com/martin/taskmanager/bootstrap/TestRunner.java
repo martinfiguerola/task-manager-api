@@ -7,6 +7,8 @@ import com.martin.taskmanager.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class TestRunner implements CommandLineRunner {
 
@@ -21,25 +23,40 @@ public class TestRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        // 1️⃣ Create user
-        User user = new User();
-        user.setEmail("test@test.com");
-        user.setPassword("123");
+        if (userRepository.count() == 0) {
 
-        userRepository.save(user);
+            // 1️⃣ Create users
+            User testUser = new User();
+            testUser.setEmail("test@example.com");
+            testUser.setPassword("123");
 
-        // 2️⃣ Create t
-        Task task = new Task();
-        task.setTitle("Study Spring");
-        task.setDescription("Test fetch type");
-        task.setUser(user);
+            User publicUser = new User();
+            publicUser.setEmail("public@example.com");
+            publicUser.setPassword("123");
 
-        taskRepository.save(task);
+            userRepository.saveAll(List.of(testUser, publicUser));
 
-        // 3️⃣ Test fetch
-        taskRepository.findAll();
+            // 2️⃣ Create tasks
+            Task task = new Task();
+            task.setTitle("Study Spring");
+            task.setDescription("Test fetch type");
+            task.setUser(testUser);
 
-        System.out.println("Data loaded and query executed");
+            Task task2 = new Task();
+            task2.setTitle("Study Angular");
+            task2.setDescription("front-end");
+            task2.setUser(publicUser);
+
+
+            taskRepository.saveAll(List.of(task, task2));
+
+            // 3️⃣ Test fetch
+            // taskRepository.findAll();
+
+            System.out.println("Data loaded");
+        }
+
+
 
     }
 }
