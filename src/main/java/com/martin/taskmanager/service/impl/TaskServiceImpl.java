@@ -6,6 +6,8 @@ import com.martin.taskmanager.service.TaskService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class TaskServiceImpl implements TaskService {
 
@@ -20,5 +22,11 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Task save(Task task) {
         return taskRepository.save(task);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<Task> findAll() {
+        return taskRepository.findAll();
     }
 }

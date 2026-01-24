@@ -4,10 +4,9 @@ import com.martin.taskmanager.model.Task;
 
 import com.martin.taskmanager.service.TaskService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -23,5 +22,10 @@ public class TaskController {
     public ResponseEntity<Task> createTask (@RequestBody Task task) {
         Task savedTask = taskService.save(task);
         return ResponseEntity.ok(savedTask);
+    }
+
+    @GetMapping
+    private ResponseEntity<List<Task>> getTasks () {
+        return ResponseEntity.ok(taskService.findAll());
     }
 }
