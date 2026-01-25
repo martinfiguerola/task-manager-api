@@ -59,4 +59,15 @@ public class TaskServiceImpl implements TaskService {
         });
 
     }
+
+    @Transactional
+    @Override
+    public boolean deleteById(Long id) {
+
+        return taskRepository.findById(id)
+                .map(existingTask -> {
+                    taskRepository.delete(existingTask);
+                    return true;
+                }).orElse(false);
+    }
 }

@@ -3,6 +3,7 @@ package com.martin.taskmanager.controller;
 import com.martin.taskmanager.model.Task;
 
 import com.martin.taskmanager.service.TaskService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,5 +46,11 @@ public class TaskController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
 
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteTask (@PathVariable Long id) {
+        if (taskService.deleteById(id)) return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Task with given ID does not exist.");
     }
 }

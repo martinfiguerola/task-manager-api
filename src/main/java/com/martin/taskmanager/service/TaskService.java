@@ -11,5 +11,6 @@ public interface TaskService {
     List<Task> findAll ();
     Optional<Task> findById (Long id);
     Optional<Task> update (Long id, Task task);
+    boolean deleteById (Long id);
 
 }
