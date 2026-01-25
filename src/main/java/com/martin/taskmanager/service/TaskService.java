@@ -10,5 +10,6 @@ public interface TaskService {
     Task save (Task task);
     List<Task> findAll ();
     Optional<Task> findById (Long id);
+    Optional<Task> update (Long id, Task task);
 
 }

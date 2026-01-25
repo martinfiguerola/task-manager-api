@@ -36,4 +36,27 @@ public class TaskServiceImpl implements TaskService {
     public Optional<Task> findById(Long id) {
         return taskRepository.findById(id);
     }
+
+    @Transactional
+    @Override
+    public Optional<Task> update(Long id, Task task) {
+
+        Optional<Task> optionalTask = taskRepository.findById(id);
+
+        return optionalTask.map(existingTask -> {
+
+            if (task.getTitle() != null){
+                existingTask.setTitle(task.getTitle());
+            }
+            if (task.getDescription() != null){
+                existingTask.setDescription(task.getDescription());
+            }
+            if (task.getStatus() != null) {
+                existingTask.setStatus(task.getStatus());
+            }
+
+            return taskRepository.save(existingTask);
+        });
+
+    }
 }
