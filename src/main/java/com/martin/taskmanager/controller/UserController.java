@@ -1,5 +1,7 @@
 package com.martin.taskmanager.controller;
 
+import com.martin.taskmanager.dto.user.UserRequestDTO;
+import com.martin.taskmanager.dto.user.UserResponseDTO;
 import com.martin.taskmanager.model.User;
 import com.martin.taskmanager.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -20,9 +22,11 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User savedUser = userService.save(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO request) {
+
+        UserResponseDTO response = userService.save(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
