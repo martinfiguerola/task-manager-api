@@ -12,6 +12,6 @@ public interface UserService {
     UserResponseDTO save (UserRequestDTO request);
     List<User> findAll();
     Optional<UserResponseDTO> findById (Long id);
-    Optional<User> update (Long id, User user);
+    Optional<UserResponseDTO> update (Long id, UserRequestDTO request);
     boolean deleteById (Long id);
 }

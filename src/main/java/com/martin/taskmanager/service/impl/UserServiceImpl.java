@@ -56,17 +56,19 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public Optional<User> update(Long id, User user) {
+    public Optional<UserResponseDTO> update(Long id, UserRequestDTO request) {
 
         Optional<User> optionalUser = userRepository.findById(id);
 
         return optionalUser
-                .map(existsUser -> {
+                .map(existingUser -> {
 
-                    existsUser.setEmail(user.getEmail());
-                    existsUser.setPassword(user.getPassword());
+                    existingUser.setEmail(request.email());
+                    existingUser.setPassword(request.password());
 
-                    return userRepository.save(existsUser);
+                    User savedUser = userRepository.save(existingUser);
+
+                    return userMapper.toDTO(savedUser);
                 });
     }
 
