@@ -38,9 +38,9 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id) {
+    public ResponseEntity<UserResponseDTO> getUser(@PathVariable Long id) {
 
-        Optional<User> optionalUser = userService.findById(id);
+        Optional<UserResponseDTO> optionalUser = userService.findById(id);
 
         return optionalUser
                 .map(ResponseEntity::ok)

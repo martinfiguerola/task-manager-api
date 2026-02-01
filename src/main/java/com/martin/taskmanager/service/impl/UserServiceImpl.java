@@ -47,8 +47,11 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     @Override
-    public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
+    public Optional<UserResponseDTO> findById(Long id) {
+
+        Optional<User> optionalUser = userRepository.findById(id);
+
+        return optionalUser.map(userMapper::toDTO);
     }
 
     @Transactional
