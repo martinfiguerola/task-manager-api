@@ -30,11 +30,11 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getUsers() {
+    public ResponseEntity<List<UserResponseDTO>> getUsers() {
 
-        List<User> users = userService.findAll();
+        List<UserResponseDTO> response = userService.findAll();
 
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
@@ -59,7 +59,9 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+
         if (userService.deleteById(id)) return ResponseEntity.noContent().build();
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with given ID does not exist.");
     }
 }

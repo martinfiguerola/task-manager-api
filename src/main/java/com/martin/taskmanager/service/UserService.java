@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface UserService {
 
     UserResponseDTO save (UserRequestDTO request);
-    List<User> findAll();
+    List<UserResponseDTO> findAll();
     Optional<UserResponseDTO> findById (Long id);
     Optional<UserResponseDTO> update (Long id, UserRequestDTO request);
     boolean deleteById (Long id);
