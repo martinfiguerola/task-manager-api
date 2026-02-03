@@ -1,5 +1,7 @@
 package com.martin.taskmanager.controller;
 
+import com.martin.taskmanager.dto.task.TaskRequestDTO;
+import com.martin.taskmanager.dto.task.TaskResponseDTO;
 import com.martin.taskmanager.model.Task;
 
 import com.martin.taskmanager.service.TaskService;
@@ -21,9 +23,9 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<Task> createTask (@RequestBody Task task) {
-        Task savedTask = taskService.save(task);
-        return ResponseEntity.ok(savedTask);
+    public ResponseEntity<TaskResponseDTO> createTask (@RequestBody TaskRequestDTO request) {
+        TaskResponseDTO response = taskService.save(request);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

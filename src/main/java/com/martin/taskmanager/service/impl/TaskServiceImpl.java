@@ -1,7 +1,12 @@
 package com.martin.taskmanager.service.impl;
 
+import com.martin.taskmanager.dto.task.TaskRequestDTO;
+import com.martin.taskmanager.dto.task.TaskResponseDTO;
+import com.martin.taskmanager.mapper.TaskMapper;
 import com.martin.taskmanager.model.Task;
+import com.martin.taskmanager.model.User;
 import com.martin.taskmanager.repository.TaskRepository;
+import com.martin.taskmanager.repository.UserRepository;
 import com.martin.taskmanager.service.TaskService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,17 +18,33 @@ import java.util.Optional;
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
+    private final TaskMapper taskMapper;
 
-    public TaskServiceImpl(TaskRepository taskRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, TaskMapper taskMapper, UserRepository userRepository) {
         this.taskRepository = taskRepository;
+        this.taskMapper = taskMapper;
+        this.userRepository = userRepository;
     }
-
 
     @Transactional
     @Override
-    public Task save(Task task) {
-        return taskRepository.save(task);
+    public TaskResponseDTO save(TaskRequestDTO request) {
+
+        Long userId = request.userId();
+
+        User user = userRepository.findById(request.userId())
+                .orElseThrow(() -> new IllegalArgumentException("User with: " + userId + "does not exist"));
+
+        Task task = taskMapper.toEntity(request);
+
+        task.setUser(user);
+
+        Task savedTask = taskRepository.save(task);
+
+        return taskMapper.toDTO(savedTask);
     }
+
 
     @Transactional(readOnly = true)
     @Override
