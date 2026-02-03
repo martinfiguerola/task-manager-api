@@ -36,23 +36,6 @@ public class TestRunner implements CommandLineRunner {
 
             userRepository.saveAll(List.of(testUser, publicUser));
 
-            // 2️⃣ Create tasks
-            Task task = new Task();
-            task.setTitle("Study Spring");
-            task.setDescription("Test fetch type");
-            task.setUser(testUser);
-
-            Task task2 = new Task();
-            task2.setTitle("Study Angular");
-            task2.setDescription("front-end");
-            task2.setUser(publicUser);
-
-
-            taskRepository.saveAll(List.of(task, task2));
-
-            // 3️⃣ Test fetch
-            // taskRepository.findAll();
-
             System.out.println("Data loaded");
         }
 
