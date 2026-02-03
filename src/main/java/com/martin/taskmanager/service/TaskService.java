@@ -11,7 +11,7 @@ public interface TaskService {
 
     TaskResponseDTO save (TaskRequestDTO request);
     List<TaskResponseDTO> findAll ();
-    Optional<Task> findById (Long id);
+    Optional<TaskResponseDTO> findById (Long id);
     Optional<Task> update (Long id, Task task);
     boolean deleteById (Long id);
 

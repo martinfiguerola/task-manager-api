@@ -58,8 +58,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional(readOnly = true)
     @Override
-    public Optional<Task> findById(Long id) {
-        return taskRepository.findById(id);
+    public Optional<TaskResponseDTO> findById(Long id) {
+        return taskRepository.findById(id)
+                .map(taskMapper::toDTO);
     }
 
     @Transactional
