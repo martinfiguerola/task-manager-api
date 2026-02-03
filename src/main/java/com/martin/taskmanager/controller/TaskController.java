@@ -2,6 +2,7 @@ package com.martin.taskmanager.controller;
 
 import com.martin.taskmanager.dto.task.TaskRequestDTO;
 import com.martin.taskmanager.dto.task.TaskResponseDTO;
+import com.martin.taskmanager.dto.task.TaskUpdateDTO;
 import com.martin.taskmanager.model.Task;
 
 import com.martin.taskmanager.service.TaskService;
@@ -40,14 +41,13 @@ public class TaskController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask (@PathVariable Long id, @RequestBody Task task) {
-        Optional<Task> optionalTask = taskService.update(id, task);
+    @PatchMapping("/{id}")
+    public ResponseEntity<TaskResponseDTO> updateTask (@PathVariable Long id, @RequestBody TaskUpdateDTO request) {
+        Optional<TaskResponseDTO> optionalTask = taskService.update(id, request);
 
         return optionalTask
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-
     }
 
     @DeleteMapping("/{id}")

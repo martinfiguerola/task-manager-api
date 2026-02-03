@@ -2,7 +2,9 @@ package com.martin.taskmanager.service.impl;
 
 import com.martin.taskmanager.dto.task.TaskRequestDTO;
 import com.martin.taskmanager.dto.task.TaskResponseDTO;
+import com.martin.taskmanager.dto.task.TaskUpdateDTO;
 import com.martin.taskmanager.mapper.TaskMapper;
+import com.martin.taskmanager.model.Status;
 import com.martin.taskmanager.model.Task;
 import com.martin.taskmanager.model.User;
 import com.martin.taskmanager.repository.TaskRepository;
@@ -65,25 +67,42 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     @Override
-    public Optional<Task> update(Long id, Task task) {
+    public Optional<TaskResponseDTO> update(Long id, TaskUpdateDTO request) {
 
         Optional<Task> optionalTask = taskRepository.findById(id);
 
         return optionalTask.map(existingTask -> {
 
-            if (task.getTitle() != null){
-                existingTask.setTitle(task.getTitle());
-            }
-            if (task.getDescription() != null){
-                existingTask.setDescription(task.getDescription());
-            }
-            if (task.getStatus() != null) {
-                existingTask.setStatus(task.getStatus());
+            if (request.title() != null && !request.title().isBlank()){
+                existingTask.setTitle(request.title());
             }
 
-            return taskRepository.save(existingTask);
+            if (request.description() != null){
+                existingTask.setDescription(request.description());
+            }
+
+            if (request.status() != null) {
+
+                String statusRequest = request.status().toUpperCase();
+
+                boolean isValidStatus = false;
+
+                for (Status status : Status.values()){
+                    if (statusRequest.equals(status.name())) {
+                        isValidStatus = true;
+                        break;
+                    }
+                }
+
+                if (!isValidStatus) throw new IllegalArgumentException("Invalid status: " + request.status());
+
+                existingTask.setStatus(Status.valueOf(statusRequest));
+            }
+
+            Task updatedTask = taskRepository.save(existingTask);
+
+            return taskMapper.toDTO(updatedTask);
         });
-
     }
 
     @Transactional
