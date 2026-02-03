@@ -29,7 +29,7 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Task>> getTasks () {
+    public ResponseEntity<List<TaskResponseDTO>> getTasks () {
         return ResponseEntity.ok(taskService.findAll());
     }
 

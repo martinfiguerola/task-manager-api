@@ -48,8 +48,12 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Task> findAll() {
-        return taskRepository.findAll();
+    public List<TaskResponseDTO> findAll() {
+        List<Task> tasks = taskRepository.findAll();
+
+        return tasks.stream()
+                .map(taskMapper::toDTO)
+                .toList();
     }
 
     @Transactional(readOnly = true)

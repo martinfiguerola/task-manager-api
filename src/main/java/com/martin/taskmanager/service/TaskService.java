@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface TaskService {
 
     TaskResponseDTO save (TaskRequestDTO request);
-    List<Task> findAll ();
+    List<TaskResponseDTO> findAll ();
     Optional<Task> findById (Long id);
     Optional<Task> update (Long id, Task task);
     boolean deleteById (Long id);
