@@ -4,6 +4,7 @@ import com.martin.taskmanager.dto.user.UserRequestDTO;
 import com.martin.taskmanager.dto.user.UserResponseDTO;
 import com.martin.taskmanager.model.User;
 import com.martin.taskmanager.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO request) {
+    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO request) {
 
         UserResponseDTO response = userService.save(request);
 
@@ -49,7 +50,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody UserRequestDTO request) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequestDTO request) {
         Optional<UserResponseDTO> optionalUser = userService.update(id, request);
 
         return optionalUser
