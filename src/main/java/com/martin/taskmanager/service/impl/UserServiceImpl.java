@@ -27,8 +27,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO save(UserRequestDTO request) {
 
-        // { "email": "pedro@example.com", "password": "newSecurePassword456" }
-
         // Map DTO to entity
         User user = userMapper.toEntity(request);
 

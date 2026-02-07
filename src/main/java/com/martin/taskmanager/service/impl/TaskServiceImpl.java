@@ -35,11 +35,9 @@ public class TaskServiceImpl implements TaskService {
 
         Long userId = request.userId();
 
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User with: " + userId + "does not exist"));
+        User user = userRepository.findById(userId).orElseThrow();
 
         Task task = taskMapper.toEntity(request);
-
         task.setUser(user);
 
         Task savedTask = taskRepository.save(task);
@@ -73,31 +71,9 @@ public class TaskServiceImpl implements TaskService {
 
         return optionalTask.map(existingTask -> {
 
-            if (request.title() != null && !request.title().isBlank()){
-                existingTask.setTitle(request.title());
-            }
-
-            if (request.description() != null){
-                existingTask.setDescription(request.description());
-            }
-
-            if (request.status() != null) {
-
-                String statusRequest = request.status().toUpperCase();
-
-                boolean isValidStatus = false;
-
-                for (Status status : Status.values()){
-                    if (statusRequest.equals(status.name())) {
-                        isValidStatus = true;
-                        break;
-                    }
-                }
-
-                if (!isValidStatus) throw new IllegalArgumentException("Invalid status: " + request.status());
-
-                existingTask.setStatus(Status.valueOf(statusRequest));
-            }
+            existingTask.setTitle(request.title());
+            existingTask.setDescription(request.description());
+            existingTask.setStatus(Status.valueOf(request.status()));
 
             Task updatedTask = taskRepository.save(existingTask);
 

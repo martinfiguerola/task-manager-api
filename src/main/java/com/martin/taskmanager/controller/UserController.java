@@ -2,7 +2,6 @@ package com.martin.taskmanager.controller;
 
 import com.martin.taskmanager.dto.user.UserRequestDTO;
 import com.martin.taskmanager.dto.user.UserResponseDTO;
-import com.martin.taskmanager.model.User;
 import com.martin.taskmanager.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

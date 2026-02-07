@@ -1,14 +1,14 @@
 package com.martin.taskmanager.dto.user;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public record UserRequestDTO(
 
-        @NotNull @Email
+        @NotBlank @Email
         String email,
 
-        @NotNull @Min(8)
+        @NotBlank @Size(min = 8)
         String password
 ) {}

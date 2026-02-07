@@ -6,6 +6,7 @@ import com.martin.taskmanager.dto.task.TaskUpdateDTO;
 import com.martin.taskmanager.model.Task;
 
 import com.martin.taskmanager.service.TaskService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<TaskResponseDTO> createTask (@RequestBody TaskRequestDTO request) {
+    public ResponseEntity<TaskResponseDTO> createTask ( @Valid @RequestBody TaskRequestDTO request) {
         TaskResponseDTO response = taskService.save(request);
         return ResponseEntity.ok(response);
     }
@@ -41,8 +42,8 @@ public class TaskController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<TaskResponseDTO> updateTask (@PathVariable Long id, @RequestBody TaskUpdateDTO request) {
+    @PutMapping("/{id}")
+    public ResponseEntity<TaskResponseDTO> updateTask (@PathVariable Long id, @Valid @RequestBody TaskUpdateDTO request) {
         Optional<TaskResponseDTO> optionalTask = taskService.update(id, request);
 
         return optionalTask
