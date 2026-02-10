@@ -7,13 +7,13 @@ import jakarta.validation.constraints.Size;
 
 public record TaskRequestDTO(
 
-        @NotBlank @Size(min = 3)
+        @NotBlank(message = "Title is required") @Size(min = 3, message = "Title must have at least 3 characters")
         String title,
 
-        @NotNull @Size(max = 150)
+        @NotNull (message = "Description is required") @Size(max = 150, message = "Description cannot exceed 150 characters")
         String description,
 
-        @NotNull
+        @NotNull(message = "User id is required")
         Long userId
 ) {
 }
