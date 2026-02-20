@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -26,8 +25,7 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<TaskResponseDTO> createTask ( @Valid @RequestBody TaskRequestDTO request) {
-        TaskResponseDTO response = taskService.save(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(taskService.save(request));
     }
 
     @GetMapping
@@ -37,23 +35,17 @@ public class TaskController {
 
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponseDTO> getTask (@PathVariable Long id) {
-        return taskService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(taskService.findById(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TaskResponseDTO> updateTask (@PathVariable Long id, @Valid @RequestBody TaskUpdateDTO request) {
-        Optional<TaskResponseDTO> optionalTask = taskService.update(id, request);
-
-        return optionalTask
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(taskService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteTask (@PathVariable Long id) {
-        if (taskService.deleteById(id)) return ResponseEntity.noContent().build();
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Task with given ID does not exist.");
+    public ResponseEntity<Void> deleteTask (@PathVariable Long id) {
+        taskService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

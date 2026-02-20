@@ -39,29 +39,17 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUser(@PathVariable Long id) {
-
-        Optional<UserResponseDTO> optionalUser = userService.findById(id);
-
-        return optionalUser
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-
+        return ResponseEntity.ok(userService.findById(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequestDTO request) {
-        Optional<UserResponseDTO> optionalUser = userService.update(id, request);
-
-        return optionalUser
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(userService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
-
-        if (userService.deleteById(id)) return ResponseEntity.noContent().build();
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with given ID does not exist.");
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

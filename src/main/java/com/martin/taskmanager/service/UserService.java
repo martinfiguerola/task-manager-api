@@ -4,13 +4,12 @@ import com.martin.taskmanager.dto.user.UserRequestDTO;
 import com.martin.taskmanager.dto.user.UserResponseDTO;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface UserService {
 
     UserResponseDTO save (UserRequestDTO request);
     List<UserResponseDTO> findAll();
-    Optional<UserResponseDTO> findById (Long id);
-    Optional<UserResponseDTO> update (Long id, UserRequestDTO request);
-    boolean deleteById (Long id);
+    UserResponseDTO findById (Long id);
+    UserResponseDTO update (Long id, UserRequestDTO request);
+    void deleteById (Long id);
 }

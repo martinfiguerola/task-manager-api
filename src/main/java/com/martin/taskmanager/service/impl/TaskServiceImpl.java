@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -35,7 +35,9 @@ public class TaskServiceImpl implements TaskService {
 
         Long userId = request.userId();
 
-        User user = userRepository.findById(userId).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow( () ->
+                new NoSuchElementException("User with id " + userId + " not found")
+        );
 
         Task task = taskMapper.toEntity(request);
         task.setUser(user);
@@ -58,37 +60,39 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional(readOnly = true)
     @Override
-    public Optional<TaskResponseDTO> findById(Long id) {
-        return taskRepository.findById(id)
-                .map(taskMapper::toDTO);
+    public TaskResponseDTO findById(Long id) {
+
+        Task task = taskRepository.findById(id).orElseThrow( () ->
+                new NoSuchElementException("Task with id " + id + " not found")
+        );
+
+        return taskMapper.toDTO(task);
     }
 
     @Transactional
     @Override
-    public Optional<TaskResponseDTO> update(Long id, TaskUpdateDTO request) {
+    public TaskResponseDTO update(Long id, TaskUpdateDTO request) {
 
-        Optional<Task> optionalTask = taskRepository.findById(id);
+        Task task = taskRepository.findById(id).orElseThrow( () ->
+                new NoSuchElementException("Task with id " + id + " not found")
+        );
 
-        return optionalTask.map(existingTask -> {
+        task.setTitle(request.title());
+        task.setDescription(request.description());
+        task.setStatus(Status.valueOf(request.status()));
 
-            existingTask.setTitle(request.title());
-            existingTask.setDescription(request.description());
-            existingTask.setStatus(Status.valueOf(request.status()));
+        Task updatedTask = taskRepository.save(task);
 
-            Task updatedTask = taskRepository.save(existingTask);
-
-            return taskMapper.toDTO(updatedTask);
-        });
+        return taskMapper.toDTO(updatedTask);
     }
 
     @Transactional
     @Override
-    public boolean deleteById(Long id) {
+    public void deleteById(Long id) {
+        Task task = taskRepository.findById(id).orElseThrow( () ->
+                new NoSuchElementException("Task with id " + id + " not found")
+        );
 
-        return taskRepository.findById(id)
-                .map(existingTask -> {
-                    taskRepository.delete(existingTask);
-                    return true;
-                }).orElse(false);
+        taskRepository.delete(task);
     }
 }

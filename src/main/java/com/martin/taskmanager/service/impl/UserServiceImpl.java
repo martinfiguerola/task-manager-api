@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -50,41 +51,40 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     @Override
-    public Optional<UserResponseDTO> findById(Long id) {
+    public UserResponseDTO findById(Long id) {
 
-        Optional<User> optionalUser = userRepository.findById(id);
+        User user = userRepository.findById(id).orElseThrow( () ->
+                new NoSuchElementException("User with id " + id + " not found")
+        );
 
-        return optionalUser.map(userMapper::toDTO);
+        return userMapper.toDTO(user);
+
     }
 
     @Transactional
     @Override
-    public Optional<UserResponseDTO> update(Long id, UserRequestDTO request) {
+    public UserResponseDTO update(Long id, UserRequestDTO request) {
 
-        Optional<User> optionalUser = userRepository.findById(id);
+        User user = userRepository.findById(id).orElseThrow( () ->
+                new NoSuchElementException("User with id " + id + " not found")
+        );
 
-        return optionalUser
-                .map(existingUser -> {
+        user.setEmail(request.email());
+        user.setPassword(request.password());
 
-                    existingUser.setEmail(request.email());
-                    existingUser.setPassword(request.password());
+        User savedUser = userRepository.save(user);
 
-                    User savedUser = userRepository.save(existingUser);
-
-                    return userMapper.toDTO(savedUser);
-                });
+        return userMapper.toDTO(savedUser);
     }
 
     @Transactional
     @Override
-    public boolean deleteById(Long id) {
+    public void deleteById(Long id) {
 
-        Optional<User> optionalUser = userRepository.findById(id);
+        User user = userRepository.findById(id).orElseThrow( () ->
+                new NoSuchElementException("User with id " + id + " not found")
+        );
 
-        return optionalUser
-                .map(user -> {
-                    userRepository.delete(user);
-                    return true;
-                }).orElse(false);
+        userRepository.delete(user);
     }
 }

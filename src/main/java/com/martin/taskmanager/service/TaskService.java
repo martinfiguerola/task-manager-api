@@ -5,14 +5,13 @@ import com.martin.taskmanager.dto.task.TaskResponseDTO;
 import com.martin.taskmanager.dto.task.TaskUpdateDTO;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface TaskService {
 
     TaskResponseDTO save (TaskRequestDTO request);
     List<TaskResponseDTO> findAll ();
-    Optional<TaskResponseDTO> findById (Long id);
-    Optional<TaskResponseDTO> update (Long id, TaskUpdateDTO request);
-    boolean deleteById (Long id);
+    TaskResponseDTO findById (Long id);
+    TaskResponseDTO update (Long id, TaskUpdateDTO request);
+    void deleteById (Long id);
 
 }
