@@ -76,4 +76,15 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(UserHasActiveTasksException.class)
+    public ResponseEntity<ErrorResponse> handleUserHasTasks (UserHasActiveTasksException exception) {
+        ErrorResponse errorResponse  = new ErrorResponse();
+
+        errorResponse.setStatus(HttpStatus.CONFLICT.value());
+        errorResponse.setError("USER_HAS_ACTIVE_TASKS");
+        errorResponse.setMessages(List.of(exception.getMessage()));
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+
+    }
 }

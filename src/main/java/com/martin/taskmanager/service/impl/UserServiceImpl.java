@@ -3,9 +3,11 @@ package com.martin.taskmanager.service.impl;
 import com.martin.taskmanager.dto.user.UserRequestDTO;
 import com.martin.taskmanager.dto.user.UserResponseDTO;
 import com.martin.taskmanager.exception.EmailAlreadyExistsException;
+import com.martin.taskmanager.exception.UserHasActiveTasksException;
 import com.martin.taskmanager.exception.UserNotFoundException;
 import com.martin.taskmanager.mapper.UserMapper;
 import com.martin.taskmanager.model.User;
+import com.martin.taskmanager.repository.TaskRepository;
 import com.martin.taskmanager.repository.UserRepository;
 import com.martin.taskmanager.service.UserService;
 import org.springframework.stereotype.Service;
@@ -19,10 +21,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
     private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
 
-    public UserServiceImpl(UserMapper userMapper, UserRepository userRepository) {
+    public UserServiceImpl(UserMapper userMapper, UserRepository userRepository, TaskRepository taskRepository) {
         this.userMapper = userMapper;
         this.userRepository = userRepository;
+        this.taskRepository = taskRepository;
     }
 
     @Transactional
@@ -89,6 +93,10 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
+
+        if (taskRepository.countByUserId(id) > 0){
+            throw new UserHasActiveTasksException(id);
+        }
 
         userRepository.delete(user);
     }
