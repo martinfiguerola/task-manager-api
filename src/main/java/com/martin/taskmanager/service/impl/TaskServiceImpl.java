@@ -3,9 +3,7 @@ package com.martin.taskmanager.service.impl;
 import com.martin.taskmanager.dto.task.TaskRequestDTO;
 import com.martin.taskmanager.dto.task.TaskResponseDTO;
 import com.martin.taskmanager.dto.task.TaskUpdateDTO;
-import com.martin.taskmanager.exception.InvalidTaskStatusException;
-import com.martin.taskmanager.exception.TaskNotFoundException;
-import com.martin.taskmanager.exception.UserNotFoundException;
+import com.martin.taskmanager.exception.*;
 import com.martin.taskmanager.mapper.TaskMapper;
 import com.martin.taskmanager.model.Status;
 import com.martin.taskmanager.model.Task;
@@ -75,11 +73,19 @@ public class TaskServiceImpl implements TaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
 
+        if(task.getStatus() == Status.DONE) {
+            throw new ImmutableTaskException(task.getStatus());
+        }
+
         Status status;
         try {
             status = Status.valueOf(request.status().toUpperCase());
         } catch (IllegalArgumentException | NullPointerException e) {
             throw new InvalidTaskStatusException(request.status());
+        }
+
+        if (!task.getStatus().canTransitionTo(status)) {
+            throw new InvalidStatusTransitionException(status);
         }
 
         task.setTitle(request.title());

@@ -87,4 +87,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
 
     }
+
+    @ExceptionHandler(InvalidStatusTransitionException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidStatusTransition(InvalidStatusTransitionException exception) {
+        ErrorResponse errorResponse  = new ErrorResponse();
+
+        errorResponse.setStatus(HttpStatus.CONFLICT.value());
+        errorResponse.setError("INVALID_STATUS_TRANSITION");
+        errorResponse.setMessages(List.of(exception.getMessage()));
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+
+    }
+
+    @ExceptionHandler(ImmutableTaskException.class)
+    public ResponseEntity<ErrorResponse> handleImmutableTask(ImmutableTaskException exception) {
+        ErrorResponse errorResponse  = new ErrorResponse();
+
+        errorResponse.setStatus(HttpStatus.CONFLICT.value());
+        errorResponse.setError("TASK_IS_IMMUTABLE");
+        errorResponse.setMessages(List.of(exception.getMessage()));
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+
+    }
+
 }
+

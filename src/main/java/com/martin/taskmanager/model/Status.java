@@ -3,5 +3,9 @@ package com.martin.taskmanager.model;
 public enum Status {
     PENDING,
     IN_PROGRESS,
-    DONE
+    DONE;
+
+    public boolean canTransitionTo(Status next) {
+        return next.ordinal() >= this.ordinal();
+    }
 }
