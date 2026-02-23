@@ -2,6 +2,8 @@ package com.martin.taskmanager.service.impl;
 
 import com.martin.taskmanager.dto.user.UserRequestDTO;
 import com.martin.taskmanager.dto.user.UserResponseDTO;
+import com.martin.taskmanager.exception.EmailAlreadyExistsException;
+import com.martin.taskmanager.exception.UserNotFoundException;
 import com.martin.taskmanager.mapper.UserMapper;
 import com.martin.taskmanager.model.User;
 import com.martin.taskmanager.repository.UserRepository;
@@ -10,8 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -27,6 +28,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserResponseDTO save(UserRequestDTO request) {
+
+        if (userRepository.existsByEmail(request.email())){
+            throw new EmailAlreadyExistsException(request.email());
+        }
 
         // Map DTO to entity
         User user = userMapper.toEntity(request);
@@ -53,21 +58,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO findById(Long id) {
 
-        User user = userRepository.findById(id).orElseThrow( () ->
-                new NoSuchElementException("User with id " + id + " not found")
-        );
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         return userMapper.toDTO(user);
-
     }
 
     @Transactional
     @Override
     public UserResponseDTO update(Long id, UserRequestDTO request) {
 
-        User user = userRepository.findById(id).orElseThrow( () ->
-                new NoSuchElementException("User with id " + id + " not found")
-        );
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+
+        if (userRepository.existsByEmail(request.email())){
+            throw new EmailAlreadyExistsException(request.email());
+        }
 
         user.setEmail(request.email());
         user.setPassword(request.password());
@@ -81,9 +87,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteById(Long id) {
 
-        User user = userRepository.findById(id).orElseThrow( () ->
-                new NoSuchElementException("User with id " + id + " not found")
-        );
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
 
         userRepository.delete(user);
     }

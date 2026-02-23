@@ -3,6 +3,9 @@ package com.martin.taskmanager.service.impl;
 import com.martin.taskmanager.dto.task.TaskRequestDTO;
 import com.martin.taskmanager.dto.task.TaskResponseDTO;
 import com.martin.taskmanager.dto.task.TaskUpdateDTO;
+import com.martin.taskmanager.exception.InvalidTaskStatusException;
+import com.martin.taskmanager.exception.TaskNotFoundException;
+import com.martin.taskmanager.exception.UserNotFoundException;
 import com.martin.taskmanager.mapper.TaskMapper;
 import com.martin.taskmanager.model.Status;
 import com.martin.taskmanager.model.Task;
@@ -14,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -35,9 +37,8 @@ public class TaskServiceImpl implements TaskService {
 
         Long userId = request.userId();
 
-        User user = userRepository.findById(userId).orElseThrow( () ->
-                new NoSuchElementException("User with id " + userId + " not found")
-        );
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         Task task = taskMapper.toEntity(request);
         task.setUser(user);
@@ -46,7 +47,6 @@ public class TaskServiceImpl implements TaskService {
 
         return taskMapper.toDTO(savedTask);
     }
-
 
     @Transactional(readOnly = true)
     @Override
@@ -62,9 +62,8 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponseDTO findById(Long id) {
 
-        Task task = taskRepository.findById(id).orElseThrow( () ->
-                new NoSuchElementException("Task with id " + id + " not found")
-        );
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException(id));
 
         return taskMapper.toDTO(task);
     }
@@ -73,13 +72,19 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponseDTO update(Long id, TaskUpdateDTO request) {
 
-        Task task = taskRepository.findById(id).orElseThrow( () ->
-                new NoSuchElementException("Task with id " + id + " not found")
-        );
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException(id));
+
+        Status status;
+        try {
+            status = Status.valueOf(request.status().toUpperCase());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new InvalidTaskStatusException(request.status());
+        }
 
         task.setTitle(request.title());
         task.setDescription(request.description());
-        task.setStatus(Status.valueOf(request.status()));
+        task.setStatus(status);
 
         Task updatedTask = taskRepository.save(task);
 
@@ -89,9 +94,8 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public void deleteById(Long id) {
-        Task task = taskRepository.findById(id).orElseThrow( () ->
-                new NoSuchElementException("Task with id " + id + " not found")
-        );
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException(id));
 
         taskRepository.delete(task);
     }
