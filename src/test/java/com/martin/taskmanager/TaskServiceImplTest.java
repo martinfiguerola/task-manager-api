@@ -40,7 +40,6 @@ public class TaskServiceImplTest {
     @InjectMocks
     private TaskServiceImpl taskService;
 
-
     @Test
     @DisplayName("Should throw Exception when user does not exist")
     void save_ShouldThrowException_WhenUserDoesNotExist() {
@@ -159,6 +158,95 @@ public class TaskServiceImplTest {
         // 3) Assert
         verify(taskRepository, never()).save(any());
         verifyNoInteractions(taskMapper);
+    }
+
+    @Test
+    @DisplayName("Should return TaskResponseDTO when user exists")
+    void save_ShouldReturnTaskResponseDTO_WhenUserExists() {
+
+        // 1) Arrange
+
+        TaskRequestDTO request = new TaskRequestDTO("Test title", "Test description", 1L);
+
+        Long userId = request.userId();
+
+        User user = new User();
+
+        Task task = new Task();
+
+        Task savedTask = new Task();
+
+        TaskResponseDTO taskResponseDTO = new TaskResponseDTO(1L, "Test title", "Test description", Status.PENDING);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(taskMapper.toEntity(request)).thenReturn(task);
+        when(taskRepository.save(task)).thenReturn(savedTask);
+        when(taskMapper.toDTO(savedTask)).thenReturn(taskResponseDTO);
+
+        // 2) Act
+        TaskResponseDTO responseDTO = taskService.save(request);
+
+        // 3) Assert
+        assertNotNull(responseDTO);
+        assertEquals(taskResponseDTO, responseDTO);
+
+        verify(userRepository).findById(userId);
+        verify(taskMapper).toEntity(request);
+        verify(taskRepository).save(task);
+        verify(taskMapper).toDTO(savedTask);
+    }
+
+    @Test
+    @DisplayName("Should return TaskResponseDTO when id exists")
+    void findById_ShouldReturnTaskResponseDTO_WhenIdExists() {
+
+        // 1) Arrange
+        Long id = 1L;
+        Task existingTask = new Task();
+        TaskResponseDTO expectedResponse = new TaskResponseDTO(1L, "Test title", "Test description", Status.PENDING);
+
+        when(taskRepository.findById(id)).thenReturn(Optional.of(existingTask));
+        when(taskMapper.toDTO(existingTask)).thenReturn(expectedResponse);
+
+        // 2) Act
+        TaskResponseDTO actualResponse = taskService.findById(id);
+
+        // 3) Assert
+        assertNotNull(actualResponse);
+        assertEquals(expectedResponse, actualResponse);
+
+        verify(taskRepository).findById(id);
+        verify(taskMapper).toDTO(existingTask);
+
+    }
+
+    @Test
+    @DisplayName("Should return TaskResponseDTO when task exists")
+    void update_ShouldReturnTaskResponseDTO_WhenTaskExists() {
+
+        // 1) Arrange
+        Long id = 1L;
+        TaskUpdateDTO request = new TaskUpdateDTO("Test title", "Test description", "IN_PROGRESS");
+        Task existingTask = new Task();
+        existingTask.setStatus(Status.PENDING);
+        Task updatedTask = new Task();
+        TaskResponseDTO expectedResponse = new TaskResponseDTO(1L, "Test title", "Test description", Status.IN_PROGRESS);
+
+        when(taskRepository.findById(id)).thenReturn(Optional.of(existingTask));
+        when(taskRepository.save(existingTask)).thenReturn(updatedTask);
+        when(taskMapper.toDTO(updatedTask)).thenReturn(expectedResponse);
+
+        // 2) Act
+        TaskResponseDTO actualResponse = taskService.update(id, request);
+
+        // 3) Assert
+        assertNotNull(actualResponse);
+        assertEquals(expectedResponse, actualResponse);
+
+        verify(taskRepository).findById(id);
+        verify(taskRepository).save(existingTask);
+        verify(taskMapper).toDTO(updatedTask);
+
     }
 
 }
