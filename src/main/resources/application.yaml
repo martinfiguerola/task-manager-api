@@ -16,5 +16,8 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
     show-sql: true
+jwt:
+  secret: tu_clave_secreta_super_larga_y_segura_123456789
+  expiration: 86400000
 
 
