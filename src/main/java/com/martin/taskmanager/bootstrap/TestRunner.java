@@ -25,16 +25,13 @@ public class TestRunner implements CommandLineRunner {
 
         if (userRepository.count() == 0) {
 
-            // 1️⃣ Create users
-            User testUser = new User();
-            testUser.setEmail("test@example.com");
-            testUser.setPassword("123");
+            // 1️⃣ Create user
 
             User publicUser = new User();
             publicUser.setEmail("public@example.com");
             publicUser.setPassword("123");
 
-            userRepository.saveAll(List.of(testUser, publicUser));
+            userRepository.save(publicUser);
 
             System.out.println("Data loaded");
         }

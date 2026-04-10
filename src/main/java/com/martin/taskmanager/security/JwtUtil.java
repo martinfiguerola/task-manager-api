@@ -43,21 +43,6 @@ public class JwtUtil {
     }
 
     public boolean isTokenValid(String token) {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         try {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
@@ -68,6 +53,5 @@ public class JwtUtil {
             return false;
         }
     }
-
 
 }
