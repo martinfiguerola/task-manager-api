@@ -11,6 +11,8 @@ import com.martin.taskmanager.model.User;
 import com.martin.taskmanager.repository.TaskRepository;
 import com.martin.taskmanager.repository.UserRepository;
 import com.martin.taskmanager.service.TaskService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,12 +50,14 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<TaskResponseDTO> findAll() {
-        List<Task> tasks = taskRepository.findAll();
-
-        return tasks.stream()
-                .map(taskMapper::toDTO)
-                .toList();
+    public Page<TaskResponseDTO> findAll(Pageable pageable, Status status) {
+        Page<Task> taskPage;
+        if (status == null) {
+            taskPage = taskRepository.findAll(pageable);
+        }else{
+            taskPage = taskRepository.findByStatus(status, pageable);
+        }
+        return taskPage.map(taskMapper::toDTO);
     }
 
     @Transactional(readOnly = true)

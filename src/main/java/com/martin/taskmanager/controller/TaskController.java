@@ -3,10 +3,13 @@ package com.martin.taskmanager.controller;
 import com.martin.taskmanager.dto.task.TaskRequestDTO;
 import com.martin.taskmanager.dto.task.TaskResponseDTO;
 import com.martin.taskmanager.dto.task.TaskUpdateDTO;
+import com.martin.taskmanager.model.Status;
 import com.martin.taskmanager.model.Task;
 
 import com.martin.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +32,8 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskResponseDTO>> getTasks () {
-        return ResponseEntity.ok(taskService.findAll());
+    public ResponseEntity<Page<TaskResponseDTO>> getTasks (Pageable pageable, @RequestParam(required = false) Status status) {
+        return ResponseEntity.ok(taskService.findAll(pageable, status));
     }
 
     @GetMapping("/{id}")
