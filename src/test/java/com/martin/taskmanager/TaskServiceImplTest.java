@@ -18,7 +18,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,6 +44,63 @@ public class TaskServiceImplTest {
 
     @InjectMocks
     private TaskServiceImpl taskService;
+
+    @Test
+    @DisplayName("Should return page of tasks when status is null")
+    void findAll_ShouldReturnPageOfTasks_WhenNoFilter() {
+
+        // 1) Arrange
+        Status status = null;
+        Pageable pageable = PageRequest.of(0, 2);
+
+        Task sampleTask = new Task();
+        sampleTask.setTitle("Test task");
+        sampleTask.setStatus(Status.PENDING);
+
+        Page<Task> expectedTaskPage = new PageImpl<>(List.of(sampleTask));
+        TaskResponseDTO expectedTaskDto = new TaskResponseDTO(1L, "Study Testing", "Finish phase 6", Status.PENDING);
+
+        when(taskRepository.findAll(pageable)).thenReturn(expectedTaskPage);
+        when(taskMapper.toDTO(sampleTask)).thenReturn(expectedTaskDto);
+
+        // Act
+        Page<TaskResponseDTO> result = taskService.findAll(pageable, status);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(expectedTaskDto, result.getContent().get(0));
+        verify(taskRepository).findAll(pageable);
+        verify(taskMapper).toDTO(sampleTask);
+
+    }
+
+    @Test
+    @DisplayName("Should return page of tasks when status filter is applied")
+    void findAll_ShouldReturnPageOfTasks_WhenStatusFilter() {
+        // Arrange
+        Pageable pageable = PageRequest.of(0, 2);
+        Status status = Status.PENDING;
+
+        Task sampleTask = new Task();
+        sampleTask.setTitle("Test task");
+        sampleTask.setStatus(Status.PENDING);
+
+        Page<Task> expectedTaskPage = new PageImpl<>(List.of(sampleTask));
+
+        TaskResponseDTO expectedTaskDto = new TaskResponseDTO(1L, "Study Testing", "Finish phase 6", Status.PENDING);
+
+        when(taskRepository.findByStatus(status, pageable)).thenReturn(expectedTaskPage);
+        when(taskMapper.toDTO(sampleTask)).thenReturn(expectedTaskDto);
+
+        // Act
+        Page<TaskResponseDTO> result = taskService.findAll(pageable, status);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(expectedTaskDto, result.getContent().get(0));
+        verify(taskRepository).findByStatus(status, pageable);
+        verify(taskMapper).toDTO(sampleTask);
+    }
 
     @Test
     @DisplayName("Should throw Exception when user does not exist")
@@ -248,5 +310,7 @@ public class TaskServiceImplTest {
         verify(taskMapper).toDTO(updatedTask);
 
     }
+
+
 
 }
