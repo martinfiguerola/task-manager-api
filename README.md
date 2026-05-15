@@ -1,10 +1,13 @@
 # Task Manager API
 
-REST API for task management with user authentication built with Java and Spring Boot.
+REST API for task management with user authentication and JWT security.
+Built with Java and Spring Boot, deployed on Railway.
 
-## 🚀 Live Demo
+## Live Demo
 
-**Base URL:** https://task-manager-api-production-6511.up.railway.app
+Base URL: https://task-manager-api-production-6511.up.railway.app
+
+## API Endpoints
 
 ### Auth
 | Method | Endpoint | Description | Auth |
@@ -30,17 +33,17 @@ REST API for task management with user authentication built with Java and Spring
 | PUT | /api/users/{id} | Update a user | ✅ |
 | DELETE | /api/users/{id} | Delete a user | ✅ |
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-- **Java 17** + **Spring Boot 3**
-- **Spring Security** + **JWT** authentication
-- **Spring Data JPA** + **Hibernate**
-- **MySQL**
-- **Docker** + **Docker Compose**
-- **Maven**
-- **JUnit** + **Mockito**
+- Java 17 + Spring Boot 3
+- Spring Security + JWT authentication
+- Spring Data JPA + Hibernate
+- MySQL
+- Docker + Docker Compose
+- Maven
+- JUnit + Mockito
 
-## ✨ Features
+## Features
 
 - User registration and login with JWT authentication
 - Full CRUD operations for tasks and users
@@ -49,62 +52,57 @@ REST API for task management with user authentication built with Java and Spring
 - Input validation
 - Containerized with Docker
 
-## 🏃 Run locally with Docker
+## Architecture
+
+The project follows a layered architecture:
+
+- **Controller** → receives HTTP requests and delegates to the service layer
+- **Service** → contains the business logic
+- **Repository** → handles database access via Spring Data JPA
+- **Security** → JWT filter intercepts every request and validates the token before it reaches the controller
+- **DTOs** → separate the internal model from the API response
+
+## Run Locally with Docker
 
 1. Clone the repository
-```bash
    git clone https://github.com/martinfiguerola/task-manager-api.git
    cd task-manager-api
-```
 
-2. Create a `.env` file based on the example
-```bash
+2. Create a .env file based on the example
    cp .env.example .env
-```
 
 3. Start the application
-```bash
    docker-compose up
-```
 
-The API will be available at `http://localhost:8080`
+The API will be available at http://localhost:8080
 
-## 📋 Example usage
+## 📋 Example Usage
 
-**Register:**
-```bash
+Register:
 curl -X POST https://task-manager-api-production-6511.up.railway.app/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "12345678"}'
-```
+-H "Content-Type: application/json" \
+-d '{"email": "user@example.com", "password": "12345678"}'
 
-**Login:**
-```bash
+Login:
 curl -X POST https://task-manager-api-production-6511.up.railway.app/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "12345678"}'
-```
+-H "Content-Type: application/json" \
+-d '{"email": "user@example.com", "password": "12345678"}'
 
-**Get tasks:**
-```bash
+Get tasks:
 curl https://task-manager-api-production-6511.up.railway.app/api/tasks \
-  -H "Authorization: Bearer <your_token>"
-```
+-H "Authorization: Bearer <your_token>"
 
-**Get tasks filtered by status:**
-```bash
+Get tasks filtered by status:
 curl "https://task-manager-api-production-6511.up.railway.app/api/tasks?status=IN_PROGRESS&page=0&size=10" \
-  -H "Authorization: Bearer <your_token>"
-```
+-H "Authorization: Bearer <your_token>"
 
 ## 🧪 Testing
 
-```bash
 ./mvnw test
-```
 
 14 unit tests covering service layer with JUnit and Mockito.
 
 ## 📦 Deployment
 
-Deployed on **Railway** with a MySQL database. Auto-deploys on push to `main`.
+Deployed on Railway with a MySQL database.
+Auto-deploys on push to main.
