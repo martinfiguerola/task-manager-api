@@ -1,19 +1,13 @@
 spring:
   application:
     name: task-manager
-
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:mysql}
   jpa:
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
     show-sql: true
 jwt:
