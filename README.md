@@ -38,7 +38,7 @@ Base URL: https://task-manager-api-production-6511.up.railway.app
 - Java 17 + Spring Boot 3
 - Spring Security + JWT authentication
 - Spring Data JPA + Hibernate
-- MySQL
+- MySQL and PostgreSQL support via Spring Profiles
 - Docker + Docker Compose
 - Maven
 - JUnit + Mockito
@@ -61,6 +61,8 @@ The project follows a layered architecture:
 - **Repository** → handles database access via Spring Data JPA
 - **Security** → JWT filter intercepts every request and validates the token before it reaches the controller
 - **DTOs** → separate the internal model from the API response
+  
+The application supports multiple database environments (MySQL and PostgreSQL) through Spring Profiles, allowing the same codebase to run against different database engines without code changes.
 
 ## Run Locally with Docker
 
@@ -104,5 +106,6 @@ curl "https://task-manager-api-production-6511.up.railway.app/api/tasks?status=I
 
 ## 📦 Deployment
 
-Deployed on Railway with a MySQL database.
+Deployed on Railway with a PostgreSQL database in production.
+The project also supports MySQL for local development via Spring Profiles.
 Auto-deploys on push to main.
