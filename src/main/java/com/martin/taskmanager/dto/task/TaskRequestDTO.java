@@ -11,9 +11,6 @@ public record TaskRequestDTO(
         String title,
 
         @NotNull (message = "Description is required") @Size(max = 150, message = "Description cannot exceed 150 characters")
-        String description,
-
-        @NotNull(message = "User id is required")
-        Long userId
+        String description
 ) {
 }
