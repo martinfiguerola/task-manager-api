@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface TaskService {
 
-    TaskResponseDTO save (TaskRequestDTO request);
+    TaskResponseDTO save (TaskRequestDTO dto, String userEmail);
     Page<TaskResponseDTO> findAll (Pageable pageable, Status status);
     TaskResponseDTO findById (Long id);
     TaskResponseDTO update (Long id, TaskUpdateDTO request);

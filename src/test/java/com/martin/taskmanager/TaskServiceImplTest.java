@@ -105,16 +105,15 @@ public class TaskServiceImplTest {
     @Test
     @DisplayName("Should throw Exception when user does not exist")
     void save_ShouldThrowException_WhenUserDoesNotExist() {
-
         // 1) Arrange
-        TaskRequestDTO request = new TaskRequestDTO("test title", "test description", 1L);
+        String userEmail = "martin@email.com";
 
-        Long userId = request.userId();
+        TaskRequestDTO dto = new TaskRequestDTO("test title", "test description");
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(userEmail)).thenReturn(Optional.empty());
 
         // 2) Act & Assert
-        assertThrows(UserNotFoundException.class, () -> taskService.save(request));
+        assertThrows(UserNotFoundException.class, () -> taskService.save(dto, userEmail));
 
         // 3) Assert
         verifyNoInteractions(taskMapper, taskRepository);
@@ -225,12 +224,10 @@ public class TaskServiceImplTest {
     @Test
     @DisplayName("Should return TaskResponseDTO when user exists")
     void save_ShouldReturnTaskResponseDTO_WhenUserExists() {
-
         // 1) Arrange
+        String userEmail = "martin@email.com";
 
-        TaskRequestDTO request = new TaskRequestDTO("Test title", "Test description", 1L);
-
-        Long userId = request.userId();
+        TaskRequestDTO dto = new TaskRequestDTO("Test title", "Test description");
 
         User user = new User();
 
@@ -240,20 +237,20 @@ public class TaskServiceImplTest {
 
         TaskResponseDTO taskResponseDTO = new TaskResponseDTO(1L, "Test title", "Test description", Status.PENDING);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(taskMapper.toEntity(request)).thenReturn(task);
+        when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(user));
+        when(taskMapper.toEntity(dto)).thenReturn(task);
         when(taskRepository.save(task)).thenReturn(savedTask);
         when(taskMapper.toDTO(savedTask)).thenReturn(taskResponseDTO);
 
         // 2) Act
-        TaskResponseDTO responseDTO = taskService.save(request);
+        TaskResponseDTO responseDTO = taskService.save(dto, userEmail);
 
         // 3) Assert
         assertNotNull(responseDTO);
         assertEquals(taskResponseDTO, responseDTO);
 
-        verify(userRepository).findById(userId);
-        verify(taskMapper).toEntity(request);
+        verify(userRepository).findByEmail(userEmail);
+        verify(taskMapper).toEntity(dto);
         verify(taskRepository).save(task);
         verify(taskMapper).toDTO(savedTask);
     }

@@ -33,14 +33,12 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     @Override
-    public TaskResponseDTO save(TaskRequestDTO request) {
+    public TaskResponseDTO save(TaskRequestDTO dto, String userEmail) {
 
-        Long userId = request.userId();
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + userEmail));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-
-        Task task = taskMapper.toEntity(request);
+        Task task = taskMapper.toEntity(dto);
         task.setUser(user);
 
         Task savedTask = taskRepository.save(task);
