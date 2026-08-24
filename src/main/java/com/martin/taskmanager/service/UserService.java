@@ -7,7 +7,6 @@ import java.util.List;
 
 public interface UserService {
 
-    UserResponseDTO save (UserRequestDTO request);
     List<UserResponseDTO> findAll();
     UserResponseDTO findById (Long id);
     UserResponseDTO update (Long id, UserRequestDTO request);

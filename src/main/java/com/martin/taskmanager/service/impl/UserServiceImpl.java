@@ -29,24 +29,6 @@ public class UserServiceImpl implements UserService {
         this.taskRepository = taskRepository;
     }
 
-    @Transactional
-    @Override
-    public UserResponseDTO save(UserRequestDTO request) {
-
-        if (userRepository.existsByEmail(request.email())){
-            throw new EmailAlreadyExistsException(request.email());
-        }
-
-        // Map DTO to entity
-        User user = userMapper.toEntity(request);
-
-        // Save the entity
-        User savedUser = userRepository.save(user);
-
-        // Map entity to Response DTO and return
-        return  userMapper.toDTO(savedUser);
-    }
-
     @Transactional(readOnly = true)
     @Override
     public List<UserResponseDTO> findAll() {

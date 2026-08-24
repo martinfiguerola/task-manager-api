@@ -4,7 +4,6 @@ import com.martin.taskmanager.dto.task.TaskRequestDTO;
 import com.martin.taskmanager.dto.task.TaskResponseDTO;
 import com.martin.taskmanager.dto.task.TaskUpdateDTO;
 import com.martin.taskmanager.model.Status;
-import com.martin.taskmanager.model.Task;
 
 import com.martin.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
@@ -12,7 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -27,13 +25,8 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<TaskResponseDTO> createTask (
-            @Valid @RequestBody TaskRequestDTO dto,
-            Authentication authentication) {
-
-        String userEmail = authentication.getName();
-        TaskResponseDTO response = taskService.save(dto, userEmail);
-
+    public ResponseEntity<TaskResponseDTO> createTask (@Valid @RequestBody TaskRequestDTO dto) {
+        TaskResponseDTO response = taskService.save(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
