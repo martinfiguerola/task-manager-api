@@ -113,7 +113,7 @@ public class TaskServiceImplTest {
         when(userRepository.findByEmail(userEmail)).thenReturn(Optional.empty());
 
         // 2) Act & Assert
-        assertThrows(UserNotFoundException.class, () -> taskService.save(dto, userEmail));
+        assertThrows(UserNotFoundException.class, () -> taskService.save(dto));
 
         // 3) Assert
         verifyNoInteractions(taskMapper, taskRepository);
@@ -243,7 +243,7 @@ public class TaskServiceImplTest {
         when(taskMapper.toDTO(savedTask)).thenReturn(taskResponseDTO);
 
         // 2) Act
-        TaskResponseDTO responseDTO = taskService.save(dto, userEmail);
+        TaskResponseDTO responseDTO = taskService.save(dto);
 
         // 3) Assert
         assertNotNull(responseDTO);

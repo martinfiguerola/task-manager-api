@@ -13,6 +13,7 @@ import com.martin.taskmanager.repository.UserRepository;
 import com.martin.taskmanager.service.TaskService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +34,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Transactional
     @Override
-    public TaskResponseDTO save(TaskRequestDTO dto, String userEmail) {
+    public TaskResponseDTO save(TaskRequestDTO dto) {
+
+        String userEmail = getAuthenticationUserEmail();
 
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + userEmail));
@@ -49,12 +52,16 @@ public class TaskServiceImpl implements TaskService {
     @Transactional(readOnly = true)
     @Override
     public Page<TaskResponseDTO> findAll(Pageable pageable, Status status) {
+        String userEmail = getAuthenticationUserEmail();
+
         Page<Task> taskPage;
+
         if (status == null) {
-            taskPage = taskRepository.findAll(pageable);
+            taskPage = taskRepository.findByUserEmail(userEmail, pageable);
         }else{
-            taskPage = taskRepository.findByStatus(status, pageable);
+            taskPage = taskRepository.findByUserEmailAndStatus(userEmail, status, pageable);
         }
+
         return taskPage.map(taskMapper::toDTO);
     }
 
@@ -62,7 +69,9 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponseDTO findById(Long id) {
 
-        Task task = taskRepository.findById(id)
+        String userEmail = getAuthenticationUserEmail();
+
+        Task task = taskRepository.findByIdAndUserEmail(id, userEmail)
                 .orElseThrow(() -> new TaskNotFoundException(id));
 
         return taskMapper.toDTO(task);
@@ -72,7 +81,9 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponseDTO update(Long id, TaskUpdateDTO request) {
 
-        Task task = taskRepository.findById(id)
+        String userEmail = getAuthenticationUserEmail();
+
+        Task task = taskRepository.findByIdAndUserEmail(id, userEmail)
                 .orElseThrow(() -> new TaskNotFoundException(id));
 
         if(task.getStatus() == Status.DONE) {
@@ -102,9 +113,17 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public void deleteById(Long id) {
-        Task task = taskRepository.findById(id)
+        String userEmail = getAuthenticationUserEmail();
+
+        Task task = taskRepository.findByIdAndUserEmail(id, userEmail)
                 .orElseThrow(() -> new TaskNotFoundException(id));
 
         taskRepository.delete(task);
+    }
+
+    private String getAuthenticationUserEmail() {
+        return SecurityContextHolder.getContext().getAuthentication() != null
+                ? SecurityContextHolder.getContext().getAuthentication().getName()
+                : null;
     }
 }
