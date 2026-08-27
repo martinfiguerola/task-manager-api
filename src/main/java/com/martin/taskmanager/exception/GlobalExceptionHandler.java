@@ -1,115 +1,79 @@
 package com.martin.taskmanager.exception;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.ProblemDetail;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception) {
+    public ProblemDetail handleValidation(MethodArgumentNotValidException e) {
 
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-        errorResponse.setError("VALIDATION_ERROR");
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "Invalid request payload"
+        );
 
-        List<String> messages = new ArrayList<>();
+        problemDetail.setTitle("Validation Error");
 
-        for (FieldError error : exception.getBindingResult().getFieldErrors()){
-            messages.add(error.getDefaultMessage());
+
+        Map<String, String> invalidFields = new HashMap<>();
+
+        for (FieldError error : e.getBindingResult().getFieldErrors()){
+            invalidFields.put(error.getField(), error.getDefaultMessage());
         }
 
-        errorResponse.setMessages(messages);
+        problemDetail.setProperty("invalidFields", invalidFields);
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException exception) {
-
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
-        errorResponse.setError("USER_NOT_FOUND");
-        errorResponse.setMessages(List.of(exception.getMessage()));
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    @ExceptionHandler(TaskNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleTaskNotFound(TaskNotFoundException exception) {
-
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
-        errorResponse.setError("TASK_NOT_FOUND");
-        errorResponse.setMessages(List.of(exception.getMessage()));
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        return problemDetail;
     }
 
     @ExceptionHandler(InvalidTaskStatusException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidStatus (InvalidTaskStatusException exception) {
+    public ProblemDetail handleInvalidStatus (InvalidTaskStatusException e) {
 
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-        errorResponse.setError("INVALID_TASK_STATUS");
-        errorResponse.setMessages(List.of(exception.getMessage()));
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                e.getMessage()
+        );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        problemDetail.setTitle("Invalid Task Status");
+
+        return problemDetail;
     }
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleEmailDuplicate (EmailAlreadyExistsException exception) {
-        ErrorResponse errorResponse  = new ErrorResponse();
+    @ExceptionHandler({UserNotFoundException.class, TaskNotFoundException.class})
+    public ProblemDetail handleNotFound(RuntimeException e) {
 
-        errorResponse.setStatus(HttpStatus.CONFLICT.value());
-        errorResponse.setError("EMAIL_ALREADY_EXISTS");
-        errorResponse.setMessages(List.of(exception.getMessage()));
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                e.getMessage()
+        );
+        problemDetail.setTitle("Resource Not Found");
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-
+        return problemDetail;
     }
 
-    @ExceptionHandler(UserHasActiveTasksException.class)
-    public ResponseEntity<ErrorResponse> handleUserHasTasks (UserHasActiveTasksException exception) {
-        ErrorResponse errorResponse  = new ErrorResponse();
+    @ExceptionHandler({
+            EmailAlreadyExistsException.class,
+            UserHasActiveTasksException.class,
+            InvalidStatusTransitionException.class,
+            ImmutableTaskException.class
+    })
+    public ProblemDetail handleConflict(RuntimeException e) {
 
-        errorResponse.setStatus(HttpStatus.CONFLICT.value());
-        errorResponse.setError("USER_HAS_ACTIVE_TASKS");
-        errorResponse.setMessages(List.of(exception.getMessage()));
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                e.getMessage()
+        );
+        problemDetail.setTitle("Business Rule Violation");
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-
-    }
-
-    @ExceptionHandler(InvalidStatusTransitionException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidStatusTransition(InvalidStatusTransitionException exception) {
-        ErrorResponse errorResponse  = new ErrorResponse();
-
-        errorResponse.setStatus(HttpStatus.CONFLICT.value());
-        errorResponse.setError("INVALID_STATUS_TRANSITION");
-        errorResponse.setMessages(List.of(exception.getMessage()));
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-
-    }
-
-    @ExceptionHandler(ImmutableTaskException.class)
-    public ResponseEntity<ErrorResponse> handleImmutableTask(ImmutableTaskException exception) {
-        ErrorResponse errorResponse  = new ErrorResponse();
-
-        errorResponse.setStatus(HttpStatus.CONFLICT.value());
-        errorResponse.setError("TASK_IS_IMMUTABLE");
-        errorResponse.setMessages(List.of(exception.getMessage()));
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-
+        return problemDetail;
     }
 
 }

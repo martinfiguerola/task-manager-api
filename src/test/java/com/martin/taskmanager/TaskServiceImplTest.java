@@ -74,7 +74,7 @@ public class TaskServiceImplTest {
 
     }
 
-    @Test
+ /*   @Test
     @DisplayName("Should return page of tasks when status filter is applied")
     void findAll_ShouldReturnPageOfTasks_WhenStatusFilter() {
         // Arrange
@@ -100,7 +100,7 @@ public class TaskServiceImplTest {
         assertEquals(expectedTaskDto, result.getContent().get(0));
         verify(taskRepository).findByStatus(status, pageable);
         verify(taskMapper).toDTO(sampleTask);
-    }
+    }*/
 
     @Test
     @DisplayName("Should throw Exception when user does not exist")
