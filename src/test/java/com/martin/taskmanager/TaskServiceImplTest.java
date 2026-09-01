@@ -3,7 +3,6 @@ package com.martin.taskmanager;
 import com.martin.taskmanager.dto.task.TaskRequestDTO;
 import com.martin.taskmanager.dto.task.TaskResponseDTO;
 import com.martin.taskmanager.dto.task.TaskUpdateDTO;
-import com.martin.taskmanager.dto.user.UserRequestDTO;
 import com.martin.taskmanager.exception.*;
 import com.martin.taskmanager.mapper.TaskMapper;
 import com.martin.taskmanager.model.Status;
@@ -12,6 +11,8 @@ import com.martin.taskmanager.model.User;
 import com.martin.taskmanager.repository.TaskRepository;
 import com.martin.taskmanager.repository.UserRepository;
 import com.martin.taskmanager.service.impl.TaskServiceImpl;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +23,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,107 +49,110 @@ public class TaskServiceImplTest {
     @InjectMocks
     private TaskServiceImpl taskService;
 
-    @Test
-    @DisplayName("Should return page of tasks when status is null")
-    void findAll_ShouldReturnPageOfTasks_WhenNoFilter() {
+    @BeforeEach
+    void setUp() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("martin@email.com");
 
-        // 1) Arrange
-        Status status = null;
-        Pageable pageable = PageRequest.of(0, 2);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
 
-        Task sampleTask = new Task();
-        sampleTask.setTitle("Test task");
-        sampleTask.setStatus(Status.PENDING);
+        SecurityContextHolder.setContext(securityContext);
 
-        Page<Task> expectedTaskPage = new PageImpl<>(List.of(sampleTask));
-        TaskResponseDTO expectedTaskDto = new TaskResponseDTO(1L, "Study Testing", "Finish phase 6", Status.PENDING);
-
-        when(taskRepository.findAll(pageable)).thenReturn(expectedTaskPage);
-        when(taskMapper.toDTO(sampleTask)).thenReturn(expectedTaskDto);
-
-        // Act
-        Page<TaskResponseDTO> result = taskService.findAll(pageable, status);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(expectedTaskDto, result.getContent().get(0));
-        verify(taskRepository).findAll(pageable);
-        verify(taskMapper).toDTO(sampleTask);
-
+        // String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
- /*   @Test
-    @DisplayName("Should return page of tasks when status filter is applied")
-    void findAll_ShouldReturnPageOfTasks_WhenStatusFilter() {
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @DisplayName("save() - Should save and return mapped task when user exists")
+    void save_ShouldReturnTaskResponseDTO_WhenUserExists() {
+
         // Arrange
-        Pageable pageable = PageRequest.of(0, 2);
-        Status status = Status.PENDING;
+        TaskRequestDTO requestDTO = new TaskRequestDTO("Title", "Description");
 
-        Task sampleTask = new Task();
-        sampleTask.setTitle("Test task");
-        sampleTask.setStatus(Status.PENDING);
+        User mockUser = new User();
+        mockUser.setEmail("martin@email.com");
 
-        Page<Task> expectedTaskPage = new PageImpl<>(List.of(sampleTask));
+        Task taskEntity = new Task();
+        taskEntity.setTitle("Title");
+        taskEntity.setDescription("Description");
 
-        TaskResponseDTO expectedTaskDto = new TaskResponseDTO(1L, "Study Testing", "Finish phase 6", Status.PENDING);
+        Task savedTaskEntity = new Task();
+        savedTaskEntity.setId(1L);
+        savedTaskEntity.setTitle("Title");
+        savedTaskEntity.setDescription("Description");
+        savedTaskEntity.setUser(mockUser);
 
-        when(taskRepository.findByStatus(status, pageable)).thenReturn(expectedTaskPage);
-        when(taskMapper.toDTO(sampleTask)).thenReturn(expectedTaskDto);
+        TaskResponseDTO expectedResponseDTO = new TaskResponseDTO(
+                1L,
+                "Title",
+                "Description",
+                null
+        );
+
+        when(userRepository.findByEmail("martin@email.com")).thenReturn(Optional.of(mockUser));
+        when(taskMapper.toEntity(requestDTO)).thenReturn(taskEntity);
+        when(taskRepository.save(taskEntity)).thenReturn(savedTaskEntity);
+        when(taskMapper.toDTO(savedTaskEntity)).thenReturn(expectedResponseDTO);
 
         // Act
-        Page<TaskResponseDTO> result = taskService.findAll(pageable, status);
+        TaskResponseDTO result = taskService.save(requestDTO);
 
         // Assert
         assertNotNull(result);
-        assertEquals(expectedTaskDto, result.getContent().get(0));
-        verify(taskRepository).findByStatus(status, pageable);
-        verify(taskMapper).toDTO(sampleTask);
-    }*/
+        assertEquals(1L, result.id());
+        assertEquals("Title", result.title());
+
+        verify(userRepository).findByEmail("martin@email.com");
+        verify(taskMapper).toEntity(requestDTO);
+        verify(taskRepository).save(taskEntity);
+        verify(taskMapper).toDTO(savedTaskEntity);
+    }
 
     @Test
-    @DisplayName("Should throw Exception when user does not exist")
-    void save_ShouldThrowException_WhenUserDoesNotExist() {
-        // 1) Arrange
-        String userEmail = "martin@email.com";
+    @DisplayName("save() - Should throw UserNotFoundException when user does not exist")
+    void save_ShouldThrowUserNotFoundException_WhenUserDoesNotExist() {
+        // Arrange
+        TaskRequestDTO requestDTO = new TaskRequestDTO("Title", "Description");
 
-        TaskRequestDTO dto = new TaskRequestDTO("test title", "test description");
+        when(userRepository.findByEmail("martin@email.com")).thenReturn(Optional.empty());
 
-        when(userRepository.findByEmail(userEmail)).thenReturn(Optional.empty());
+        // Act & Assert
+        UserNotFoundException exception = assertThrows(
+                UserNotFoundException.class,
+                () -> taskService.save(requestDTO)
+        );
 
-        // 2) Act & Assert
-        assertThrows(UserNotFoundException.class, () -> taskService.save(dto));
+        assertEquals("User not found with email: martin@email.com", exception.getMessage());
 
-        // 3) Assert
+        verify(userRepository).findByEmail("martin@email.com");
         verifyNoInteractions(taskMapper, taskRepository);
     }
 
     @Test
-    @DisplayName("Should throw Exception when id does not exist")
-    void findById_ShouldThrowException_WhenIdDoesNotExist() {
-
-        // 1) Arrange
-        Long taskId = 1L;
-
-        when(taskRepository.findById(taskId)).thenReturn(Optional.empty());
-
-        // 2) Act & Assert
-        assertThrows(TaskNotFoundException.class, () -> taskService.findById(taskId));
-
-        // 3) Assert
-        verifyNoInteractions(taskMapper);
-    }
-
-    @Test
-    @DisplayName("Should return TaskDTO when the ID exists")
-    void findById_ShouldReturnTaskDTO_WhenIdExists() {
+    @DisplayName("findById() - Should return mapped task when task exists")
+    void findById_ShouldReturnTaskResponseDTO_WhenTaskExists() {
         // 1. Arrange
         Long taskId = 1L;
+        String userEmail = "martin@email.com";
+
         Task mockedTask = new Task();
         mockedTask.setId(1L);
-        mockedTask.setTitle("Learn Testing");
-        TaskResponseDTO mockedTaskDto = new TaskResponseDTO(1L, "Study Testing", "Finish phase 6", Status.PENDING);
+        mockedTask.setTitle("Title");
+        mockedTask.setDescription("Description");
 
-        when(taskRepository.findById(taskId)).thenReturn(Optional.of(mockedTask));
+        TaskResponseDTO mockedTaskDto = new TaskResponseDTO(
+                1L,
+                "Title",
+                "Description",
+                null
+        );
+
+        when(taskRepository.findByIdAndUserEmail(taskId, userEmail)).thenReturn(Optional.of(mockedTask));
         when(taskMapper.toDTO(mockedTask)).thenReturn(mockedTaskDto);
 
         // 2. Act
@@ -154,158 +161,239 @@ public class TaskServiceImplTest {
         // 3. Assert
         assertNotNull(result);
         assertEquals(mockedTaskDto, result);
+        assertEquals(1L, result.id());
+        assertEquals("Title", result.title());
+
+        verify(taskRepository).findByIdAndUserEmail(taskId, userEmail);
+        verify(taskMapper).toDTO(mockedTask);
     }
 
     @Test
-    @DisplayName("Should throw Exception when status is invalid")
-    void update_ShouldThrowException_WhenStatusIsInvalid() {
+    @DisplayName("findById() - Should throw TaskNotFoundException when task does not exist")
+    void findById_ShouldThrowTaskNotFoundException_WhenTaskDoesNotExist() {
 
         // 1) Arrange
-        Long id = 1L;
-
-        TaskUpdateDTO taskUpdateDTO = new TaskUpdateDTO("Test Title", "Test Description", "Invalid Status");
-
-        Task task = new Task();
-
-        when(taskRepository.findById(id)).thenReturn(Optional.of(task));
-
-        // 2) Act & Assert
-        assertThrows(InvalidTaskStatusException.class, () -> taskService.update(id, taskUpdateDTO));
-
-        // 3) Assert
-        verify(taskRepository, never()).save(any());
-        verifyNoInteractions(taskMapper);
-    }
-
-    @Test
-    @DisplayName("Should throw Exception when status is done")
-    void update_ShouldThrowException_WhenStatusIsDone() {
-
-        // 1) Arrange
-        Long id = 1L;
-
-        TaskUpdateDTO taskUpdateDTO = new TaskUpdateDTO("Test Title", "Test Description", "DONE");
-
-        Task task = new Task();
-        task.setStatus(Status.DONE);
-
-        when(taskRepository.findById(id)).thenReturn(Optional.of(task));
-
-        // 2) Act & Assert
-        assertThrows(ImmutableTaskException.class, () -> taskService.update(id, taskUpdateDTO));
-
-        // 3) Assert
-        verify(taskRepository, never()).save(any());
-        verifyNoInteractions(taskMapper);
-    }
-
-    @Test
-    @DisplayName("Should throw Exception when status transition is invalid")
-    void update_ShouldThrowException_WhenStatusTransitionIsInvalid() {
-
-        // 1) Arrange
-        Long id = 1L;
-
-        TaskUpdateDTO taskUpdateDTO = new TaskUpdateDTO("Test Title", "Test Description", "PENDING");
-
-        Task task = new Task();
-        task.setStatus(Status.IN_PROGRESS);
-
-        when(taskRepository.findById(id)).thenReturn(Optional.of(task));
-
-        // 2) Act & Assert
-        assertThrows(InvalidStatusTransitionException.class, () -> taskService.update(id, taskUpdateDTO));
-
-        // 3) Assert
-        verify(taskRepository, never()).save(any());
-        verifyNoInteractions(taskMapper);
-    }
-
-    @Test
-    @DisplayName("Should return TaskResponseDTO when user exists")
-    void save_ShouldReturnTaskResponseDTO_WhenUserExists() {
-        // 1) Arrange
+        Long taskId = 1L;
         String userEmail = "martin@email.com";
 
-        TaskRequestDTO dto = new TaskRequestDTO("Test title", "Test description");
+        when(taskRepository.findByIdAndUserEmail(taskId, userEmail)).thenReturn(Optional.empty());
 
-        User user = new User();
+        // 2) Act & Assert
+        TaskNotFoundException exception = assertThrows(
+                TaskNotFoundException.class,
+                () -> taskService.findById(taskId)
+        );
 
-        Task task = new Task();
-
-        Task savedTask = new Task();
-
-        TaskResponseDTO taskResponseDTO = new TaskResponseDTO(1L, "Test title", "Test description", Status.PENDING);
-
-        when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(user));
-        when(taskMapper.toEntity(dto)).thenReturn(task);
-        when(taskRepository.save(task)).thenReturn(savedTask);
-        when(taskMapper.toDTO(savedTask)).thenReturn(taskResponseDTO);
-
-        // 2) Act
-        TaskResponseDTO responseDTO = taskService.save(dto);
-
-        // 3) Assert
-        assertNotNull(responseDTO);
-        assertEquals(taskResponseDTO, responseDTO);
-
-        verify(userRepository).findByEmail(userEmail);
-        verify(taskMapper).toEntity(dto);
-        verify(taskRepository).save(task);
-        verify(taskMapper).toDTO(savedTask);
+        assertEquals("Task with id " + taskId + " not found", exception.getMessage());
+        verify(taskRepository).findByIdAndUserEmail(taskId, userEmail);
+        verifyNoInteractions(taskMapper);
     }
 
     @Test
-    @DisplayName("Should return TaskResponseDTO when id exists")
-    void findById_ShouldReturnTaskResponseDTO_WhenIdExists() {
+    @DisplayName("findAll() - Should return paged tasks without status filter when status is null")
+    void findAll_ShouldReturnPagedTasks_WhenStatusIsNull() {
 
         // 1) Arrange
-        Long id = 1L;
-        Task existingTask = new Task();
-        TaskResponseDTO expectedResponse = new TaskResponseDTO(1L, "Test title", "Test description", Status.PENDING);
+        String userEmail = "martin@email.com";
+        Pageable pageable = PageRequest.of(0, 2);
 
-        when(taskRepository.findById(id)).thenReturn(Optional.of(existingTask));
-        when(taskMapper.toDTO(existingTask)).thenReturn(expectedResponse);
+        Task mockedTask = new Task();
+        mockedTask.setTitle("Title");
 
-        // 2) Act
-        TaskResponseDTO actualResponse = taskService.findById(id);
+        Page<Task> taskPage = new PageImpl<>(List.of(mockedTask));
 
-        // 3) Assert
-        assertNotNull(actualResponse);
-        assertEquals(expectedResponse, actualResponse);
+        TaskResponseDTO mockedTaskDto = new TaskResponseDTO(
+                1L,
+                "Title",
+                "Description",
+                null
+        );
 
-        verify(taskRepository).findById(id);
-        verify(taskMapper).toDTO(existingTask);
+        when(taskRepository.findByUserEmail(userEmail, pageable)).thenReturn(taskPage);
+        when(taskMapper.toDTO(mockedTask)).thenReturn(mockedTaskDto);
+
+        // Act
+        Page<TaskResponseDTO> result = taskService.findAll(pageable, null);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(mockedTaskDto, result.getContent().get(0));
+
+        verify(taskRepository).findByUserEmail(userEmail, pageable);
+        verify(taskRepository, never()).findByUserEmailAndStatus(anyString(), any(), any());
+        verify(taskMapper).toDTO(mockedTask);
+
 
     }
 
     @Test
-    @DisplayName("Should return TaskResponseDTO when task exists")
-    void update_ShouldReturnTaskResponseDTO_WhenTaskExists() {
+    @DisplayName("findAll() - Should return paged tasks filtered by status when status is provided")
+    void findAll_ShouldReturnPagedTasks_WhenStatusIsProvided() {
+        // Arrange
+        String userEmail = "martin@email.com";
+        Pageable pageable = PageRequest.of(0, 2);
+        Status status = Status.PENDING;
+
+        Task mockedTask = new Task();
+        mockedTask.setTitle("Title");
+
+        Page<Task> expectedTaskPage = new PageImpl<>(List.of(mockedTask));
+
+        TaskResponseDTO mockedTaskDto = new TaskResponseDTO(
+                1L,
+                "Title",
+                "Description",
+                Status.PENDING
+        );
+
+        when(taskRepository.findByUserEmailAndStatus(userEmail, status, pageable)).thenReturn(expectedTaskPage);
+        when(taskMapper.toDTO(mockedTask)).thenReturn(mockedTaskDto);
+
+        // Act
+        Page<TaskResponseDTO> result = taskService.findAll(pageable, status);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(mockedTaskDto, result.getContent().get(0));
+        verify(taskRepository).findByUserEmailAndStatus(userEmail, status, pageable);
+        verify(taskRepository, never()).findByUserEmail(anyString(), any());
+        verify(taskMapper).toDTO(mockedTask);
+    }
+
+    @Test
+    @DisplayName("findAll() - Should return empty page when no tasks exist")
+    void findAll_ShouldReturnEmptyPage_WhenNoTasksExist() {
+        // 1. Arrange
+        String userEmail = "martin@email.com";
+        Pageable pageable = PageRequest.of(0, 2);
+
+        when(taskRepository.findByUserEmail(userEmail, pageable)).thenReturn(Page.empty());
+
+        // 2. Act
+        Page<TaskResponseDTO> result = taskService.findAll(pageable, null);
+
+        // 3. Assert
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(taskRepository).findByUserEmail(userEmail, pageable);
+        verifyNoInteractions(taskMapper);
+    }
+
+    @Test
+    @DisplayName("update() - Should throw TaskNotFoundException when task does not exist")
+    void update_ShouldThrowTaskNotFoundException_WhenTaskDoesNotExist() {
 
         // 1) Arrange
-        Long id = 1L;
-        TaskUpdateDTO request = new TaskUpdateDTO("Test title", "Test description", "IN_PROGRESS");
+        Long nonExistentTaskId = 99L;
+        String userEmail = "martin@email.com";
+        TaskUpdateDTO updateRequest = new TaskUpdateDTO("Test Title", "Test Description", "PENDING");
+
+        when(taskRepository.findByIdAndUserEmail(nonExistentTaskId, userEmail)).thenReturn(Optional.empty());
+
+        // 2) Act & Assert
+        TaskNotFoundException exception = assertThrows(
+                TaskNotFoundException.class,
+                () -> taskService.update(nonExistentTaskId, updateRequest)
+        );
+
+        // 3) Assert
+        assertEquals("Task with id " + nonExistentTaskId + " not found", exception.getMessage());
+        verify(taskRepository).findByIdAndUserEmail(nonExistentTaskId, userEmail);
+        verify(taskRepository, never()).save(any());
+        verifyNoInteractions(taskMapper);
+    }
+
+    @Test
+    @DisplayName("update() - Should update task successfully when request is valid")
+    void update_ShouldUpdateTask_WhenRequestIsValid() {
+
+        // 1) Arrange
+        Long taskId = 1L;
+        String userEmail = "martin@email.com";
+        TaskUpdateDTO updateRequest = new TaskUpdateDTO(
+                "Test title",
+                "Test description",
+                "IN_PROGRESS"
+        );
+
         Task existingTask = new Task();
+        existingTask.setId(taskId);
         existingTask.setStatus(Status.PENDING);
-        Task updatedTask = new Task();
-        TaskResponseDTO expectedResponse = new TaskResponseDTO(1L, "Test title", "Test description", Status.IN_PROGRESS);
 
-        when(taskRepository.findById(id)).thenReturn(Optional.of(existingTask));
+
+        Task updatedTask = new Task();
+        updatedTask.setId(taskId);
+        updatedTask.setTitle(updateRequest.title());
+        updatedTask.setDescription(updateRequest.description());
+        updatedTask.setStatus(Status.IN_PROGRESS);
+
+        TaskResponseDTO expectedResponse = new TaskResponseDTO(
+                1L,
+                "Test title",
+                "Test description",
+                Status.IN_PROGRESS
+        );
+
+        when(taskRepository.findByIdAndUserEmail(taskId, userEmail)).thenReturn(Optional.of(existingTask));
         when(taskRepository.save(existingTask)).thenReturn(updatedTask);
         when(taskMapper.toDTO(updatedTask)).thenReturn(expectedResponse);
 
         // 2) Act
-        TaskResponseDTO actualResponse = taskService.update(id, request);
+        TaskResponseDTO actualResponse = taskService.update(taskId, updateRequest);
 
-        // 3) Assert
+        // 3. Assert
         assertNotNull(actualResponse);
-        assertEquals(expectedResponse, actualResponse);
+        assertEquals(expectedResponse.title(), actualResponse.title());
+        assertEquals(expectedResponse.status(), actualResponse.status());
 
-        verify(taskRepository).findById(id);
+        verify(taskRepository).findByIdAndUserEmail(taskId, userEmail);
         verify(taskRepository).save(existingTask);
         verify(taskMapper).toDTO(updatedTask);
 
+    }
+
+    @Test
+    @DisplayName("deleteById() - Should delete task successfully when task exists for user")
+    void deleteById_ShouldDeleteTask_WhenTaskExistsForUser() {
+        // Arrange
+        Long taskId = 1L;
+        String userEmail = "martin@email.com";
+
+        Task existingTask = new Task();
+        existingTask.setId(1L);
+
+        when(taskRepository.findByIdAndUserEmail(taskId, userEmail)).thenReturn(Optional.of(existingTask));
+
+        // 2. Act
+        taskService.deleteById(taskId);
+
+        // Assert
+        verify(taskRepository).findByIdAndUserEmail(taskId, userEmail);
+        verify(taskRepository).delete(existingTask);
+        verifyNoInteractions(taskMapper);
+    }
+
+    @Test
+    @DisplayName("deleteById() - Should throw TaskNotFoundException when task does not exist for user")
+    void deleteById_ShouldThrowTaskNotFoundException_WhenTaskDoesNotExistForUser() {
+        // 1. Arrange
+        Long nonExistentTaskId = 99L;
+        String userEmail = "martin@email.com";
+
+        when(taskRepository.findByIdAndUserEmail(nonExistentTaskId, userEmail)).thenReturn(Optional.empty());
+
+        // 2. Act & Assert
+        TaskNotFoundException exception = assertThrows(
+                TaskNotFoundException.class,
+                () -> taskService.deleteById(nonExistentTaskId)
+        );
+
+        // 3. Assert
+        assertEquals("Task with id " + nonExistentTaskId + " not found", exception.getMessage());
+        verify(taskRepository).findByIdAndUserEmail(nonExistentTaskId, userEmail);
+        verify(taskRepository, never()).delete(any());
+        verifyNoInteractions(taskMapper);
     }
 
 
