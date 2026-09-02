@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Mock
     private UserRepository userRepository;
@@ -104,6 +108,7 @@ public class UserServiceImplTest {
         Long userId = 1L;
         UserRequestDTO request = new UserRequestDTO("new@email.com", "newPassword");
         User existingUser = new User();
+        existingUser.setEmail("martin@email.com");
         User updatedUser = new User();
         UserResponseDTO expectedDTO = new UserResponseDTO(1L, "new@email.com");
 
@@ -132,6 +137,7 @@ public class UserServiceImplTest {
         Long userId = 1L;
         UserRequestDTO request = new UserRequestDTO("taken@email.com", "pass");
         User existingUser = new User();
+        existingUser.setEmail("sam@email.com");
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.existsByEmail(request.email())).thenReturn(true);

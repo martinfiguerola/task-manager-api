@@ -10,6 +10,8 @@ import com.martin.taskmanager.model.User;
 import com.martin.taskmanager.repository.TaskRepository;
 import com.martin.taskmanager.repository.UserRepository;
 import com.martin.taskmanager.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,17 +19,14 @@ import java.util.List;
 
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserMapper userMapper, UserRepository userRepository, TaskRepository taskRepository) {
-        this.userMapper = userMapper;
-        this.userRepository = userRepository;
-        this.taskRepository = taskRepository;
-    }
 
     @Transactional(readOnly = true)
     @Override
@@ -57,12 +56,14 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
 
-        if (userRepository.existsByEmail(request.email())){
+        boolean emailChanged = !user.getEmail().equalsIgnoreCase(request.email());
+
+        if (emailChanged && userRepository.existsByEmail(request.email())){
             throw new EmailAlreadyExistsException(request.email());
         }
 
         user.setEmail(request.email());
-        user.setPassword(request.password());
+        user.setPassword(passwordEncoder.encode(request.password()));
 
         User savedUser = userRepository.save(user);
 
