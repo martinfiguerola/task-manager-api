@@ -1,4 +1,5 @@
 package com.martin.taskmanager.exception;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.validation.FieldError;
@@ -13,8 +14,18 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
+    public ProblemDetail handlerInvalidSort(InvalidDataAccessApiUsageException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "Invalid sort field. Valid fields are: id, title, description, status"
+        );
+        problemDetail.setTitle("Invalid Request Parameter");
+        return problemDetail;
+    }
+
     @ExceptionHandler(AuthenticationException.class)
-    public ProblemDetail handleAuthentication (AuthenticationException e) {
+    public ProblemDetail handleAuthentication (AuthenticationException e)   {
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.UNAUTHORIZED,
