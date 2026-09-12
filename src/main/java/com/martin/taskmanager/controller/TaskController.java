@@ -7,6 +7,7 @@ import com.martin.taskmanager.model.Status;
 
 import com.martin.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,11 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<TaskResponseDTO>> getTasks (Pageable pageable, @RequestParam(required = false) Status status) {
+    public ResponseEntity<Page<TaskResponseDTO>> getTasks (
+            @ParameterObject Pageable pageable,
+            @RequestParam(required = false)
+            Status status
+    ) {
         return ResponseEntity.ok(taskService.findAll(pageable, status));
     }
 
