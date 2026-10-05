@@ -1,6 +1,6 @@
 # Task Manager API
 
-A REST API for task management, built with Java and Spring Boot, featuring JWT authentication, ownership-based authorization, and role-based access control. Deployed live on Railway with interactive API documentation.
+A REST API for task management, built with Java and Spring Boot, featuring JWT authentication, ownership-based authorization, and role-based access control. Deployed on Railway with interactive API documentation.
 
 ![CI](https://github.com/martinfiguerola/task-manager-api/actions/workflows/ci.yml/badge.svg)
 
